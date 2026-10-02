@@ -7,6 +7,7 @@ set -e
 MT_HOME="$HOME"
 PKG_ROOT="$MT_HOME/pkgs"
 BIN_DIR="$MT_HOME/bin"
+TOOLCHAIN_BIN="$MT_HOME/toolchain/files/usr/bin"
 
 echo "[mtpkg] bootstrap"
 
@@ -16,20 +17,23 @@ mkdir -p "$BIN_DIR" \
          "$PKG_ROOT/cache" \
          "$MT_HOME/tmp/build"
 
-GITEE="https://gitee.com/ixix-info/mtpkg/raw/main"
-GITHUB="https://raw.githubusercontent.com/ixix-info/mtpkg/main"
+# 优先用 ghproxy 加速 GitHub raw
+GH_PROXY="https://ghproxy.net/"
+REPO_RAW="https://raw.githubusercontent.com/ixix-info/mtpkg/main"
 
-if curl -fsSL --connect-timeout 5 "$GITEE/mtpkg.py" -o "$BIN_DIR/mtpkg.py" 2>/dev/null; then
-    echo "[mtpkg] fetched mtpkg.py from Gitee"
-elif curl -fsSL --connect-timeout 10 "$GITHUB/mtpkg.py" -o "$BIN_DIR/mtpkg.py" 2>/dev/null; then
-    echo "[mtpkg] fetched mtpkg.py from GitHub"
-else
-    echo "[mtpkg] download failed"
-    exit 1
-fi
+fetch() {
+    local path="$1" dest="$2"
+    if curl -fsSL --connect-timeout 8 "${GH_PROXY}${REPO_RAW}/${path}" -o "$dest" 2>/dev/null; then
+        return 0
+    fi
+    if curl -fsSL --connect-timeout 12 "${REPO_RAW}/${path}" -o "$dest" 2>/dev/null; then
+        return 0
+    fi
+    return 1
+}
 
-curl -fsSL "$GITEE/recipes/index.toml" -o "$PKG_ROOT/recipes/index.toml" 2>/dev/null || \
-curl -fsSL "$GITHUB/recipes/index.toml" -o "$PKG_ROOT/recipes/index.toml"
+fetch "mtpkg.py" "$BIN_DIR/mtpkg.py" || { echo "[mtpkg] failed to fetch mtpkg.py"; exit 1; }
+fetch "recipes/index.toml" "$PKG_ROOT/recipes/index.toml" || true
 
 cat > "$BIN_DIR/mtpkg" << 'LAUNCHER'
 #!/data/data/bin.mt.plus/files/term/bin/bash
@@ -41,6 +45,11 @@ chmod +x "$BIN_DIR/mtpkg" "$BIN_DIR/mtpkg.py"
 
 if ! grep -q 'export PATH="$HOME/bin:' "$MT_HOME/.bashrc" 2>/dev/null; then
     echo 'export PATH="$HOME/bin:$PATH"' >> "$MT_HOME/.bashrc"
+fi
+
+if [ ! -x "$TOOLCHAIN_BIN/python3" ]; then
+    echo "[mtpkg] warning: python3 not found in toolchain"
+    echo "         run 'mtpkg install tc-python' first (once tc packages are published)"
 fi
 
 echo "[mtpkg] installed"
