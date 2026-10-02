@@ -5,7 +5,10 @@
 [![Python 3.14+](https://img.shields.io/badge/Python-3.14+-blue.svg)](https://www.python.org/)
 [![Shell](https://img.shields.io/badge/Shell-Bash-4EAA25.svg)](https://www.gnu.org/software/bash/)
 
-一个用于 Android 的自托管软件包管理器，基于 Termux 工具链和 Bionic libc 构建。
+> **非官方项目。** 本项目与 MT 管理器、Termux、Google 无隶属关系。
+> 使用前请阅读 [DISCLAIMER.md](DISCLAIMER.md)。
+
+一个适用于 Android 的自托管软件包管理器，基于 Termux 工具链和 Bionic libc 构建。
 
 ## 特性
 
