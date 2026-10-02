@@ -1,0 +1,24 @@
+# 编译产物
+*.o
+*.a
+*.so
+
+# Python 缓存
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# 构建目录
+tmp/
+build/
+dist/
+
+# 工具链分片（大文件）
+*.tar.zst
+*.tar.gz
+*.tar.xz
+
+# 本地已安装的包（不提交）
+pkgs/
+!pkgs/recipes/
+!pkgs/patches/
