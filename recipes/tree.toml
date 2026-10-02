@@ -1,0 +1,12 @@
+[package]
+name = "tree"
+version = "2.1.1"
+url = "https://github.com/Old-Man-Programmer/tree/archive/refs/tags/2.1.1.tar.gz"
+patches = ["tree"]
+
+[build]
+cmd = "make -j$(nproc)"
+cflags = "-D_GNU_SOURCE -O2"
+
+[install]
+bin = "tree"

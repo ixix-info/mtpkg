@@ -13,7 +13,7 @@
 ## 快速开始
 
 \`\`\`sh
-curl -fsSL https://gitee.com/iki-info/mtpkg/raw/main/bootstrap.sh | sh
+curl -fsSL https://gitee.com/ixix-info/mtpkg/raw/main/bootstrap.sh | sh
 mtpkg install tree
 \`\`\`
 

@@ -1,0 +1,5 @@
+# mtpkg recipe index
+
+[[recipes]]
+name = "tree"
+path = "tree.toml"
