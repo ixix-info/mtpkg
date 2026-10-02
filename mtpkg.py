@@ -150,6 +150,63 @@ def write_wrapper(pkg_name: str, bin_name: str):
 
 
 # ---------- 主流程 ----------
+def install_shard(name):
+    url = (f"{GH_PROXY}https://github.com/ixix-info/mtpkg/releases/"
+           f"download/toolchain-v1/{name}.tar.gz")
+    cache_dir = HOME / "tmp"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    archive = cache_dir / f"{name}.tar.gz"
+    if not archive.exists():
+        print(f"[mtpkg] downloading {name}")
+        run(["curl", "-L", "--retry", "3", "--connect-timeout", "15",
+             "-C", "-", "-o", str(archive), url])
+    print(f"[mtpkg] extracting {name}")
+    TOOLCHAIN.mkdir(parents=True, exist_ok=True)
+    with tarfile.open(archive) as tf:
+        tf.extractall(TOOLCHAIN)
+
+
+def write_mt_clang():
+    tc = str(TOOLCHAIN)
+    hm = str(HOME)
+    content = (
+        "#!/system/bin/sh\n"
+        f'export PATH="{tc}/bin:$PATH"\n'
+        f'export LD_LIBRARY_PATH="{tc}/lib:$LD_LIBRARY_PATH"\n'
+        f'exec "{tc}/bin/clang" \\\n'
+        f'     -I"{tc}/include" \\\n'
+        f'     -L"{tc}/lib" \\\n'
+        f'     -Wl,-rpath,"{hm}/lib" \\\n'
+        '     "$@"\n'
+    )
+    p = HOME / "bin/mt-clang"
+    p.write_text(content)
+    p.chmod(0o755)
+
+
+def write_mt_make():
+    tc = str(TOOLCHAIN)
+    content = (
+        "#!/system/bin/sh\n"
+        f'export PATH="{tc}/bin:$PATH"\n'
+        f'export LD_LIBRARY_PATH="{tc}/lib:$LD_LIBRARY_PATH"\n'
+        f'exec "{tc}/bin/make" "$@"\n'
+    )
+    p = HOME / "bin/mt-make"
+    p.write_text(content)
+    p.chmod(0o755)
+
+
+def ensure_toolchain():
+    if (TOOLCHAIN / "bin/clang").exists():
+        return
+    print("[mtpkg] first build, downloading compiler toolchain (~100MB)")
+    for name in ("tc-clang", "tc-headers"):
+        install_shard(name)
+    write_mt_clang()
+    write_mt_make()
+
+
 def cmd_install(name: str):
     recipe = load_recipe(name)
     pkg = recipe["package"]
